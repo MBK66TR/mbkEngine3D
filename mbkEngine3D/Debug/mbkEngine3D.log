@@ -1,0 +1,8 @@
+﻿  mbkEngine3D.cpp
+C:\Dev\3DGraphicsEngine\mbkEngine3D\mbkEngine3D.cpp(173,43): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Dev\3DGraphicsEngine\mbkEngine3D\mbkEngine3D.cpp(173,22): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Dev\3DGraphicsEngine\mbkEngine3D\mbkEngine3D.cpp(172,43): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Dev\3DGraphicsEngine\mbkEngine3D\mbkEngine3D.cpp(172,22): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Dev\3DGraphicsEngine\mbkEngine3D\mbkEngine3D.cpp(171,55): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Dev\3DGraphicsEngine\mbkEngine3D\mbkEngine3D.cpp(171,34): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  mbkEngine3D.vcxproj -> C:\Dev\3DGraphicsEngine\mbkEngine3D\Debug\mbkEngine3D.exe
