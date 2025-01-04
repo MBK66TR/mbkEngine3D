@@ -1,4 +1,3 @@
-
 /* 
   This code was written by mbk following javidx9 tutorials
 */
@@ -12,11 +11,22 @@ using namespace std;
 struct vec3d
 {
 	float x, y, z;
+
+	vec3d operator+(const vec3d& v) const { return {x + v.x, y + v.y, z + v.z}; }
+	vec3d operator-(const vec3d& v) const { return {x - v.x, y - v.y, z - v.z}; }
+	vec3d operator*(float k) const { return {x * k, y * k, z * k}; }
+	float DotProduct(const vec3d& v) const { return x * v.x + y * v.y + z * v.z; }
+	float Length() const { return sqrtf(DotProduct(*this)); }
+	vec3d Normalize() {
+		float l = Length();
+		return {x / l, y / l, z / l};
+	}
 };
 
 struct triangle
 {
 	vec3d p[3];
+	int color;  // For surface color
 };
 
 struct mesh
@@ -43,6 +53,20 @@ private:
 	mat4x4 matProj;
 
 	float fTheta;
+
+	vec3d vCamera = {0, -2.0f, 0};        // Camera position
+	vec3d vLookDir = {0, 0, 1};       // Look direction
+	float fYaw = 0.0f;                // Camera horizontal rotation angle
+
+	CHAR_INFO GetColour(float lum) {
+		CHAR_INFO c;
+		int pixel_bw = (int)(13.0f * lum);
+		if (pixel_bw < 0) pixel_bw = 0;
+		if (pixel_bw > 13) pixel_bw = 13;
+		c.Attributes = pixel_bw;
+		c.Char.UnicodeChar = PIXEL_SOLID;
+		return c;
+	}
 
 	void MultiplyMatrixVector(vec3d& i, vec3d& o, mat4x4& m)
 	{
@@ -107,6 +131,24 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
+		// Camera Controls
+		if (GetKey(VK_UP).bHeld)
+			vCamera.y += 8.0f * fElapsedTime;    // Up
+		if (GetKey(VK_DOWN).bHeld)
+			vCamera.y -= 8.0f * fElapsedTime;    // Down
+		if (GetKey(VK_LEFT).bHeld)
+			vCamera.x -= 8.0f * fElapsedTime;    // Left
+		if (GetKey(VK_RIGHT).bHeld)
+			vCamera.x += 8.0f * fElapsedTime;    // Right
+		
+		if (GetKey(L'A').bHeld)
+			fYaw -= 2.0f * fElapsedTime;
+		if (GetKey(L'D').bHeld)
+			fYaw += 2.0f * fElapsedTime;
+
+		// Update camera direction vector
+		vLookDir = {sinf(fYaw), 0, cosf(fYaw)};
+
 		// Clear Screen
 		Fill(0, 0, ScreenWidth(), ScreenHeight(), PIXEL_SOLID, FG_BLACK);
 
@@ -167,11 +209,31 @@ public:
 			triProjected.p[2].x *= 0.5f * (float)ScreenWidth();
 			triProjected.p[2].y *= 0.5f * (float)ScreenHeight();
 
-			// Rasterize triangle
-			DrawTriangle(triProjected.p[0].x, triProjected.p[0].y,
-				triProjected.p[1].x, triProjected.p[1].y,
-				triProjected.p[2].x, triProjected.p[2].y,
-				PIXEL_SOLID, FG_WHITE);
+			// Calculate surface normal
+			vec3d normal, line1, line2;
+			line1 = triTranslated.p[1] - triTranslated.p[0];
+			line2 = triTranslated.p[2] - triTranslated.p[0];
+			
+			// Calculate normal vector with cross product
+			normal.x = line1.y * line2.z - line1.z * line2.y;
+			normal.y = line1.z * line2.x - line1.x * line2.z;
+			normal.z = line1.x * line2.y - line1.y * line2.x;
+			normal = normal.Normalize();
+
+			// Light direction (simple directional light)
+			vec3d lightDir = {0.0f, 0.0f, -1.0f};
+			float dp = normal.DotProduct(lightDir);
+
+			// Draw only surfaces facing the camera
+			if (normal.DotProduct(triTranslated.p[0] - vCamera) < 0.0f)
+			{
+				// Select color based on lighting intensity
+				CHAR_INFO c = GetColour(dp);
+				DrawTriangle(triProjected.p[0].x, triProjected.p[0].y,
+					triProjected.p[1].x, triProjected.p[1].y,
+					triProjected.p[2].x, triProjected.p[2].y,
+					PIXEL_SOLID, c.Attributes);
+			}
 
 		}
 
